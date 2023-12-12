@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:ocr_scanner/components/utils.dart';
 import 'package:ocr_scanner/screens/crop_screen.dart';
 import 'package:ocr_scanner/screens/output_screen.dart';
+import 'package:pdf/widgets.dart' as pw;
 
 class OCRservice {
   Future<void> takePhoto(BuildContext context) async {
@@ -62,6 +63,28 @@ class OCRservice {
                     outputText: recognisedText.text,
                   )),
           (Route<dynamic> route) => false);
+    } catch (e) {
+      showSnackBar(context: context, content: e.toString());
+    }
+  }
+
+  Future<void> exportPDF(BuildContext context, String text) async {
+    try {
+      final pdf = pw.Document();
+      pdf.addPage(
+        pw.Page(
+          build: (pw.Context context) => pw.Center(
+            child: pw.Text(text),
+          ),
+        ),
+      );
+
+      final file = File('OCR-Scanner/Output.pdf');
+      await file.writeAsBytes(await pdf.save());
+      showSnackBar(
+          context: context,
+          content:
+              'Pdf exported successfully. Find in directory "OCR-Scanner/Output.pdf"');
     } catch (e) {
       showSnackBar(context: context, content: e.toString());
     }

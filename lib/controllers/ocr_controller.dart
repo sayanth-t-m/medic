@@ -17,4 +17,8 @@ class OCRcontroller {
   void cropImage(BuildContext context, Uint8List image) {
     ocRservice.cropping(context, image);
   }
+
+  void exportPdf(BuildContext context, String text) {
+    ocRservice.exportPDF(context, text);
+  }
 }

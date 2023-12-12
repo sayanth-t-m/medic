@@ -1,12 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:ocr_scanner/components/utils.dart';
+import 'package:ocr_scanner/controllers/ocr_controller.dart';
 import 'package:ocr_scanner/screens/home_screen.dart';
 
-class OutputScreen extends StatelessWidget {
+class OutputScreen extends StatefulWidget {
   const OutputScreen({super.key, required this.outputText});
   final String outputText;
 
+  @override
+  State<OutputScreen> createState() => _OutputScreenState();
+}
+
+class _OutputScreenState extends State<OutputScreen> {
+  final OCRcontroller ocRcontroller = OCRcontroller();
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -28,10 +35,16 @@ class OutputScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(5),
                   color: Colors.white,
                 ),
-                child: Text(
-                  outputText,
-                  style: const TextStyle(color: Colors.black),
-                ),
+                child: widget.outputText.isNotEmpty
+                    ? Text(
+                        widget.outputText,
+                        style: const TextStyle(color: Colors.black),
+                      )
+                    : const Text(
+                        'Could not find any text in image. Try again',
+                        style:
+                            TextStyle(color: Color.fromARGB(255, 248, 12, 12)),
+                      ),
               ),
             ],
           ),
@@ -43,7 +56,7 @@ class OutputScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             SizedBox(
-              width: size.width * 0.4,
+              width: size.width * 0.3,
               child: ElevatedButton(
                   onPressed: () {
                     Navigator.pushAndRemoveUntil(
@@ -55,10 +68,24 @@ class OutputScreen extends StatelessWidget {
                   child: const Text('Scan again')),
             ),
             SizedBox(
-              width: size.width * 0.4,
+              width: size.width * 0.3,
               child: ElevatedButton(
                   onPressed: () {
-                    Clipboard.setData(ClipboardData(text: outputText));
+                    showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return const CircularProgressIndicator();
+                        });
+                    ocRcontroller.exportPdf(context, widget.outputText);
+                    Navigator.pop(context);
+                  },
+                  child: const Text('Export to PDF')),
+            ),
+            SizedBox(
+              width: size.width * 0.3,
+              child: ElevatedButton(
+                  onPressed: () {
+                    Clipboard.setData(ClipboardData(text: widget.outputText));
                     showSnackBar(context: context, content: 'Copied');
                   },
                   child: const Text('Copy')),
