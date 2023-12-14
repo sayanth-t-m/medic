@@ -65,29 +65,34 @@ class _OutputScreenState extends State<OutputScreen> {
                             builder: (context) => const HomeScreen()),
                         (Route<dynamic> route) => false);
                   },
-                  child: const Text('Scan again')),
+                  child: const Text('Scan')),
             ),
             SizedBox(
               width: size.width * 0.3,
               child: ElevatedButton(
-                  onPressed: () {
-                    showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return const CircularProgressIndicator();
-                        });
-                    ocRcontroller.exportPdf(context, widget.outputText);
-                    Navigator.pop(context);
-                  },
-                  child: const Text('Export to PDF')),
+                  onPressed: widget.outputText.isEmpty
+                      ? null
+                      : () {
+                          showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return const CircularProgressIndicator();
+                              });
+                          ocRcontroller.exportPdf(context, widget.outputText);
+                          Navigator.pop(context);
+                        },
+                  child: const Text('Export')),
             ),
             SizedBox(
               width: size.width * 0.3,
               child: ElevatedButton(
-                  onPressed: () {
-                    Clipboard.setData(ClipboardData(text: widget.outputText));
-                    showSnackBar(context: context, content: 'Copied');
-                  },
+                  onPressed: widget.outputText.isEmpty
+                      ? null
+                      : () {
+                          Clipboard.setData(
+                              ClipboardData(text: widget.outputText));
+                          showSnackBar(context: context, content: 'Copied');
+                        },
                   child: const Text('Copy')),
             ),
           ],

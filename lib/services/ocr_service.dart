@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:ocr_scanner/components/utils.dart';
 import 'package:ocr_scanner/screens/crop_screen.dart';
 import 'package:ocr_scanner/screens/output_screen.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 class OCRservice {
@@ -78,13 +79,17 @@ class OCRservice {
           ),
         ),
       );
+      String name = 'Output.pdf';
+      final fileDir = await getDownloadsDirectory();
+      final appDir = Directory('${fileDir?.path}/OCR-Scanner');
 
-      final file = File('OCR-Scanner/Output.pdf');
+      if (!appDir.existsSync()) {
+        appDir.createSync(recursive: true);
+      }
+
+      final file = File('${appDir.path}/$name');
       await file.writeAsBytes(await pdf.save());
-      showSnackBar(
-          context: context,
-          content:
-              'Pdf exported successfully. Find in directory "OCR-Scanner/Output.pdf"');
+      showSnackBar(context: context, content: 'Pdf exported successfully.');
     } catch (e) {
       showSnackBar(context: context, content: e.toString());
     }
