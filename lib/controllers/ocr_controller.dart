@@ -18,7 +18,7 @@ class OCRcontroller {
     ocRservice.cropping(context, image);
   }
 
-  void exportPdf(BuildContext context, String text) {
-    ocRservice.exportPDF(context, text);
+  void shareOutput(BuildContext context, String text) {
+    ocRservice.shareOutput(context, text);
   }
 }

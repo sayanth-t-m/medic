@@ -9,7 +9,13 @@ class OptionsDialog extends StatefulWidget {
 }
 
 class _OptionsDialogState extends State<OptionsDialog> {
-  final ocrController = OCRcontroller();
+  late final OCRcontroller _ocRcontroller;
+
+  @override
+  void initState() {
+    _ocRcontroller = OCRcontroller();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,10 +43,10 @@ class _OptionsDialogState extends State<OptionsDialog> {
   }
 
   void _takePhoto(BuildContext context) {
-    ocrController.takePhoto(context);
+    _ocRcontroller.takePhoto(context);
   }
 
   void _getPhoto(BuildContext context) {
-    ocrController.getPhoto(context);
+    _ocRcontroller.getPhoto(context);
   }
 }

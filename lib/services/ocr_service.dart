@@ -6,8 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:ocr_scanner/components/utils.dart';
 import 'package:ocr_scanner/screens/crop_screen.dart';
 import 'package:ocr_scanner/screens/output_screen.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:pdf/widgets.dart' as pw;
+import 'package:share_plus/share_plus.dart';
 
 class OCRservice {
   Future<void> takePhoto(BuildContext context) async {
@@ -69,27 +68,9 @@ class OCRservice {
     }
   }
 
-  Future<void> exportPDF(BuildContext context, String text) async {
+  Future<void> shareOutput(BuildContext context, String text) async {
     try {
-      final pdf = pw.Document();
-      pdf.addPage(
-        pw.Page(
-          build: (pw.Context context) => pw.Center(
-            child: pw.Text(text),
-          ),
-        ),
-      );
-      String name = 'Output.pdf';
-      final fileDir = await getDownloadsDirectory();
-      final appDir = Directory('${fileDir?.path}/OCR-Scanner');
-
-      if (!appDir.existsSync()) {
-        appDir.createSync(recursive: true);
-      }
-
-      final file = File('${appDir.path}/$name');
-      await file.writeAsBytes(await pdf.save());
-      showSnackBar(context: context, content: 'Pdf exported successfully.');
+      Share.share(text);
     } catch (e) {
       showSnackBar(context: context, content: e.toString());
     }

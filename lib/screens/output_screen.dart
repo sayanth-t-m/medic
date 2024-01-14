@@ -13,7 +13,23 @@ class OutputScreen extends StatefulWidget {
 }
 
 class _OutputScreenState extends State<OutputScreen> {
-  final OCRcontroller ocRcontroller = OCRcontroller();
+  late final OCRcontroller _ocRcontroller;
+  late final TextEditingController _textController;
+
+  @override
+  void initState() {
+    _ocRcontroller = OCRcontroller();
+    _textController = TextEditingController();
+    _textController.text = widget.outputText;
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _textController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -36,9 +52,13 @@ class _OutputScreenState extends State<OutputScreen> {
                   color: Colors.white,
                 ),
                 child: widget.outputText.isNotEmpty
-                    ? Text(
-                        widget.outputText,
-                        style: const TextStyle(color: Colors.black),
+                    ? TextField(
+                        controller: _textController,
+                        style: const TextStyle(
+                          color: Colors.black,
+                        ),
+                        maxLines: null,
+                        keyboardType: TextInputType.multiline,
                       )
                     : const Text(
                         'Could not find any text in image. Try again',
@@ -57,43 +77,41 @@ class _OutputScreenState extends State<OutputScreen> {
           children: [
             SizedBox(
               width: size.width * 0.3,
-              child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const HomeScreen()),
-                        (Route<dynamic> route) => false);
-                  },
-                  child: const Text('Scan')),
+              child: IconButton(
+                onPressed: () {
+                  Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const HomeScreen()),
+                      (Route<dynamic> route) => false);
+                },
+                icon: const Icon(Icons.document_scanner),
+              ),
             ),
             SizedBox(
               width: size.width * 0.3,
-              child: ElevatedButton(
-                  onPressed: widget.outputText.isEmpty
-                      ? null
-                      : () {
-                          showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return const CircularProgressIndicator();
-                              });
-                          ocRcontroller.exportPdf(context, widget.outputText);
-                          Navigator.pop(context);
-                        },
-                  child: const Text('Export')),
+              child: IconButton(
+                onPressed: widget.outputText.isEmpty
+                    ? null
+                    : () {
+                        _ocRcontroller.shareOutput(
+                            context, _textController.text);
+                      },
+                icon: const Icon(Icons.share),
+              ),
             ),
             SizedBox(
               width: size.width * 0.3,
-              child: ElevatedButton(
-                  onPressed: widget.outputText.isEmpty
-                      ? null
-                      : () {
-                          Clipboard.setData(
-                              ClipboardData(text: widget.outputText));
-                          showSnackBar(context: context, content: 'Copied');
-                        },
-                  child: const Text('Copy')),
+              child: IconButton(
+                onPressed: widget.outputText.isEmpty
+                    ? null
+                    : () {
+                        Clipboard.setData(
+                            ClipboardData(text: _textController.text));
+                        showSnackBar(context: context, content: 'Copied');
+                      },
+                icon: const Icon(Icons.copy),
+              ),
             ),
           ],
         ),
