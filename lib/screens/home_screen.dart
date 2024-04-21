@@ -14,7 +14,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text('OCR Scanner'),
+        title: const Text('Medic'),
       ),
       body: Center(
         child: ElevatedButton(

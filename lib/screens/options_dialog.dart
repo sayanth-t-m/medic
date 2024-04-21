@@ -19,25 +19,31 @@ class _OptionsDialogState extends State<OptionsDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text(
-        'Choose an option',
-        style: TextStyle(fontSize: 14),
-      ),
-      content: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          ElevatedButton.icon(
-            onPressed: () => _takePhoto(context),
-            icon: const Icon(Icons.camera_alt_outlined),
-            label: const Text('Camera'),
+    return Container(
+      child: Expanded(
+        child: AlertDialog(
+          title: const Text(
+            'Choose an option',
+            style: TextStyle(fontSize: 14),
           ),
-          ElevatedButton.icon(
-            onPressed: () => _getPhoto(context),
-            icon: const Icon(Icons.image_outlined),
-            label: const Text('Gallery'),
+          content: Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () => _takePhoto(context),
+                  icon: const Icon(Icons.camera_alt_outlined),
+                  label: const Text(''),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () => _getPhoto(context),
+                  icon: const Icon(Icons.image_outlined),
+                  label: const Text(''),
+                ),
+              ],
+            ),
           ),
-        ],
+        ),
       ),
     );
   }
