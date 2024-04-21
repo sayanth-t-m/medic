@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class OutputScreen extends StatefulWidget {
   const OutputScreen({Key? key, required this.outputText}) : super(key: key);
@@ -16,75 +16,39 @@ class _OutputScreenState extends State<OutputScreen> {
   bool isLoading = false;
   String errorMessage = '';
   late final FlutterTts flutterTts = FlutterTts();
+  late final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
+
+  List<Reminder> reminders = []; // List to store reminders
 
   @override
   void initState() {
     super.initState();
     _textController = TextEditingController(text: widget.outputText);
-    outputText = widget.outputText; // Initialize outputText with outputText
+    outputText = widget.outputText;
+
+    // Initialize notification plugin settings
+    flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+    _initializeNotifications();
+
     if (widget.outputText.isNotEmpty) {
-      fetchOutput(
-          widget.outputText); // Call fetchOutput if outputText is not empty
+      // You can call fetchOutput here if needed
     }
+    speakText(outputText); // Speak text on load if available
   }
 
-  Future<void> fetchOutput(String inputText) async {
-    setState(() {
-      isLoading = true;
-    });
-
-    final apiKey = "YOUR_API_KEY"; // Replace with your actual API key
-    final url =
-        "https://generativelanguage.googleapis.com/v1beta/tunedModels/i-medic-mlns4bmks4xt:generateContent?key=$apiKey";
-
-    try {
-      final response = await http.post(
-        Uri.parse(url),
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: '''
-        {
-          "contents": [
-            {
-              "parts": [
-                {"text": "input: $outputText"},
-                {"text": "output: $outputText"}
-              ]
-            }
-          ],
-          "generationConfig": {
-            "temperature": 0.9,
-            "topK": 1,
-            "topP": 1,
-            "maxOutputTokens": 2048,
-            "stopSequences": []
-          },
-          "safetySettings": [
-            {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
-            {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
-            {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
-            {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"}
-          ]
-        }
-        ''',
-      );
-
-      if (response.statusCode == 200) {
-        setState(() {
-          outputText = response.body; // Update outputText with API response
-          isLoading = false;
-        });
-      } else {
-        throw Exception('Failed to fetch output: ${response.statusCode}');
-      }
-    } catch (e) {
-      print('Error fetching output: $e');
-      setState(() {
-        errorMessage = 'Failed to fetch output';
-        isLoading = false;
-      });
-    }
+  Future<void> _initializeNotifications() async {
+    const AndroidInitializationSettings initializationSettingsAndroid =
+        AndroidInitializationSettings('app_icon');
+    final IOSInitializationSettings initializationSettingsIOS =
+        IOSInitializationSettings();
+    final InitializationSettings initializationSettings =
+        InitializationSettings(
+      android: initializationSettingsAndroid,
+      iOS: initializationSettingsIOS,
+    );
+    await flutterLocalNotificationsPlugin.initialize(
+      initializationSettings,
+    );
   }
 
   Future<void> speakText(String text) async {
@@ -94,12 +58,28 @@ class _OutputScreenState extends State<OutputScreen> {
     await flutterTts.speak(text);
   }
 
+  Future<void> scheduleReminder(Reminder reminder) async {
+    // Replace with your reminder scheduling logic using flutter_local_notifications
+    // This is just a placeholder
+    setState(() {
+      reminders.add(reminder); // Add reminder to the list
+    });
+  }
+
+  Future<void> deleteReminder(Reminder reminder) async {
+    // Replace with your reminder deletion logic using flutter_local_notifications
+    // This is just a placeholder
+    setState(() {
+      reminders.remove(reminder); // Remove reminder from the list
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.secondary,
+        backgroundColor: Colors.blueGrey[900], // Adjust app bar color
         title: const Text('Scan Result'),
       ),
       body: Padding(
@@ -112,8 +92,17 @@ class _OutputScreenState extends State<OutputScreen> {
                 padding: const EdgeInsets.all(9.0),
                 width: size.width * 0.94,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(5),
+                  borderRadius: BorderRadius.circular(10),
+                  // Adjust border radius
                   color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.5),
+                      spreadRadius: 2,
+                      blurRadius: 7,
+                      offset: Offset(0, 3), // changes position of shadow
+                    ),
+                  ],
                 ),
                 child: isLoading
                     ? Center(
@@ -147,12 +136,64 @@ class _OutputScreenState extends State<OutputScreen> {
               ),
               const SizedBox(height: 20),
               outputText.isNotEmpty
-                  ? Text(
-                      'Output: $outputText',
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ? Column(
+                      children: [
+                        Text(
+                          'Output: $outputText',
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(height: 20),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Reminders:',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(height: 10),
+                            ListView.builder(
+                              shrinkWrap: true,
+                              itemCount: reminders.length,
+                              itemBuilder: (context, index) {
+                                final reminder = reminders[index];
+                                return ListTile(
+                                  title: Text(reminder.text),
+                                  subtitle: Text(reminder.time.toString()),
+                                  trailing: IconButton(
+                                    icon: Icon(Icons.delete),
+                                    color:
+                                        Colors.red, // Adjust delete icon color
+                                    onPressed: () {
+                                      deleteReminder(reminder);
+                                    },
+                                  ),
+                                );
+                              },
+                            ),
+                            SizedBox(height: 20),
+                            ElevatedButton(
+                              onPressed: () {
+                                _showReminderDialog(context);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blueGrey[
+                                    900], // Adjust button background color
+                              ),
+                              child: Text(
+                                'Add Reminder',
+                                style: TextStyle(
+                                    color: Colors.white), // Adjust text color
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     )
-                  : Container(), // Display output text if available
+                  : Container(),
             ],
           ),
         ),
@@ -161,8 +202,102 @@ class _OutputScreenState extends State<OutputScreen> {
         onPressed: () {
           speakText(outputText);
         },
+        backgroundColor: Colors.blueGrey[900], // Adjust FAB color
         child: Icon(Icons.volume_up),
       ),
     );
   }
+
+  Future<void> _showReminderDialog(BuildContext context) async {
+    String reminderText = '';
+    TimeOfDay? selectedTime;
+
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Add Reminder'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                onChanged: (value) {
+                  reminderText = value;
+                },
+                decoration: InputDecoration(labelText: 'Reminder Text'),
+              ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () async {
+                  final TimeOfDay? time = await showTimePicker(
+                    context: context,
+                    initialTime: TimeOfDay.now(),
+                  );
+                  if (time != null) {
+                    setState(() {
+                      selectedTime = time;
+                    });
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor:
+                      Colors.blueGrey[900], // Adjust button background color
+                ),
+                child: Text(
+                  selectedTime != null
+                      ? 'Selected Time: ${selectedTime!.hour}:${selectedTime!.minute}'
+                      : 'Select Time',
+                  style: TextStyle(color: Colors.white), // Adjust text color
+                ),
+              ),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (reminderText.isNotEmpty && selectedTime != null) {
+                  final reminder = Reminder(
+                    text: reminderText,
+                    time: selectedTime!,
+                  );
+                  scheduleReminder(reminder);
+                  Navigator.of(context).pop();
+                } else {
+                  // Show error message if reminder text or time is empty
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Please enter reminder text and select time.',
+                      ),
+                    ),
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor:
+                    Colors.blueGrey[900], // Adjust button background color
+              ),
+              child: Text(
+                'Add',
+                style: TextStyle(color: Colors.white), // Adjust text color
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class Reminder {
+  final String text;
+  final TimeOfDay time;
+
+  Reminder({required this.text, required this.time});
 }

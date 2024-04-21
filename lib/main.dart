@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ocr_scanner/screens/home_screen.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 void main() {
   runApp(const MyApp());

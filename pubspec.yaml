@@ -42,7 +42,8 @@ dependencies:
   share_plus: ^7.2.1
   http: ^1.2.1
   flutter_tts: ^4.0.2
-
+  flutter_local_notifications: ^9.3.1  # Update with the latest version if needed
+  flutter_datetime_picker: ^1.5.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
